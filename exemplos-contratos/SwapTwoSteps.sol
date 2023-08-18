@@ -74,6 +74,9 @@ contract SwapTwoSteps {
         uint256 amount                // Quantidade de Reais a ser movimentada
     ) public {
         proposalCounter += 1;
+
+        tokenSender.
+
         swapProposals[proposalCounter] = SwapProposal({
             tokenSender: tokenSender,
             tokenReceiver: tokenReceiver,
