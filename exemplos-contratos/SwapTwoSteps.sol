@@ -101,9 +101,21 @@ contract SwapTwoSteps {
         require(proposal.status == SwapStatus.PENDING, "Cannot execute swap, status is not PENDING.");
         require(block.timestamp - proposal.timestamp <= 1 minutes, "Swap proposal has expired.");
 
-        proposal.tokenSender.burnFrom(proposal.sender, proposal.amount);
-        CBDC.move(proposal.tokenSender.reserve(), proposal.tokenReceiver.reserve(), proposal.amount);
-        proposal.tokenReceiver.mint(proposal.receiver, proposal.amount);
+        if (proposal.tokenSender.amountOf(proposal.sender) < proposal.amount) {
+            revert("Saldo insuficiente");
+        }
+
+        // Se for intrabancário, apenas transfere valor
+        if (proposal.tokenSender.reserve() == proposal.tokenReceiver.reserve()) {
+            proposal.tokenSender.transfer(proposal.receiver, proposal.amount);
+        } else {
+            // O valor é retirado do pagador
+            proposal.tokenSender.burnFrom(proposal.sender, proposal.amount);
+            // Real Digital é transferido do participante pagador para o recebedor
+            CBDC.move(proposal.tokenSender.reserve(), proposal.tokenReceiver.reserve(), proposal.amount);
+            // Real Tokenizado é emitido para o recebedor
+            proposal.tokenReceiver.mint(proposal.receiver, proposal.amount);
+        }
 
         proposal.status = SwapStatus.EXECUTED;
 

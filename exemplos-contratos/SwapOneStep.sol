@@ -37,12 +37,23 @@ contract SwapOneStep {
         address receiver,
         uint256 amount
     ) public {
-        // O valor é retirado do pagador
-        tokenSender.burnFrom(msg.sender, amount);
-        // Real Digital é transferido do participante pagador para o recebedor
-        CBDC.move(tokenSender.reserve(), tokenReceiver.reserve(), amount);
-        // Real Tokenizado é emitido para o recebedor
-        tokenReceiver.mint(receiver, amount);
+
+        // Verifica se o participante pagador tem saldo suficiente
+        if (tokenSender.amountOf(msg.sender) < amount) {
+            revert("Saldo insuficiente");
+        }
+
+        // Se for intrabancário, apenas transfere valor
+        if (tokenSender.reserve() == tokenReceiver.reserve()) {
+            tokenSender.transfer(receiver, amount);
+        } else {
+            // O valor é retirado do pagador
+            tokenSender.burnFrom(msg.sender, amount);
+            // Real Digital é transferido do participante pagador para o recebedor
+            CBDC.move(tokenSender.reserve(), tokenReceiver.reserve(), amount);
+            // Real Tokenizado é emitido para o recebedor
+            tokenReceiver.mint(receiver, amount);
+        }
 
         // Emitindo o evento de SwapExecuted
         emit SwapExecuted(

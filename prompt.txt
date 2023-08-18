@@ -1,0 +1,11 @@
+Enviarei nas próximas mensagens uma lista de ABIs e documentações de todos dos contratos no forma ABI, seguidos de sua documentação em markdown. Seguirei o seguinte padrão para cada contrato, onde contractname é o nome do contrato especificado::
+
+[contractname ABI]
+JSON com ABI do contrato em 1 linha
+[contractname doc]
+Documentação do contrato em markdown em várias linhas
+[contractname fim]
+
+Nesse padrão [contractname ABI] indica que a próxima linha trás o JSON do ABI do contrato "contractname", [contractname doc] indica o fim do ABI e o inicio do markdown que documenta o contrato "contractname" e [contractname fim] indica o fim das informações do contrato "contractname".
+
+Responda cada mensagem como uma mensagem "contractname RECEBIDO", substituindo contractname com o nome do contrato que você recebeu. Após o envio de todos os contratos, enviarei o comando [FIM]. Responsa com a mensagem "TODOS RECEBIDO". Só então, gere cada um dos arquivos .sol com um código que implemente os casos de uso, operacoes e eventos relatados no ABI e documentação.
