@@ -11,3 +11,8 @@ Os pontos onde anoto com `[Sugestão de implementação]`, são sugestões minha
 - Qual a relacão e uso correto de `CBDCAccessControl`. Me pareceu um ancestral comum a todos os contratos que implementam `AccessControl`. Usei como um contrato abstrato, pai de `RealDigital`, mas não tenho certeza.
 - `RealTokenizado` me parece que pode ser `abstract`, com uma implementação diferente para cada IF.
 
+## License
+
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT). This license allows for reuse of parts or all of the code, as long as the original source is acknowledged.
+
+Feel free to contribute, suggest changes, or fork the repository. Your feedback and contributions are always welcome!
