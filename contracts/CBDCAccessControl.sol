@@ -30,9 +30,9 @@ abstract contract CBDCAccessControl is AccessControl {
     /*
     * @dev Construtor do contrato
     * @param _authority: endereço da autoridade do contrato que pode fazer todas as operações com o token
-    * @param _admin: endereço do administrador do contrato, que pode trocar a autoridade do contrato caso seja necessário
     */
-    constructor(address _authority, address _admin) {
+    constructor(address _authority) {
+        address _admin = msg.sender;
         _setupRole(DEFAULT_ADMIN_ROLE, _admin);
         _setupRole(ACCESS_ROLE, _authority);
         _setupRole(MINTER_ROLE, _authority);
@@ -41,14 +41,13 @@ abstract contract CBDCAccessControl is AccessControl {
         _setupRole(FREEZER_ROLE, _authority);
         _setupRole(PAUSER_ROLE, _admin);
 
-        bytes32 _authorityHash = keccak256(abi.encodePacked(_authority));
+        _setRoleAdmin(ACCESS_ROLE, DEFAULT_ADMIN_ROLE);
+        _setRoleAdmin(MINTER_ROLE, DEFAULT_ADMIN_ROLE);
+        _setRoleAdmin(BURNER_ROLE, DEFAULT_ADMIN_ROLE);
+        _setRoleAdmin(MOVER_ROLE, DEFAULT_ADMIN_ROLE);
+        _setRoleAdmin(FREEZER_ROLE, DEFAULT_ADMIN_ROLE);
+        _setRoleAdmin(PAUSER_ROLE, DEFAULT_ADMIN_ROLE);
 
-        _setRoleAdmin(PAUSER_ROLE, _authorityHash);
-        _setRoleAdmin(MINTER_ROLE, _authorityHash);
-        _setRoleAdmin(ACCESS_ROLE, _authorityHash);
-        _setRoleAdmin(MOVER_ROLE, _authorityHash);
-        _setRoleAdmin(BURNER_ROLE, _authorityHash);
-        _setRoleAdmin(FREEZER_ROLE, _authorityHash);
     }
 
     /*
@@ -57,7 +56,13 @@ abstract contract CBDCAccessControl is AccessControl {
     * @param to: endereço da carteira do recebedor
     */
     modifier checkAccess(address from, address to) {
-        require(verifyAccount(from) && verifyAccount(to), "Access denied");
+        if (from != address(0) && to != address(0)) {
+            require(verifyAccount(from) && verifyAccount(to), "Access denied");
+        } else if (from != address(0)) {
+            require(verifyAccount(from), "Access denied");
+        } else if (to != address(0)) {
+            require(verifyAccount(to), "Access denied");
+        }
         _;
     }
 
@@ -65,9 +70,7 @@ abstract contract CBDCAccessControl is AccessControl {
     * @dev Habilita uma carteira a receber o token
     * @param member: endereço da carteira a ser habilitada
     */
-    function enableAccount(address member) public {
-        require(hasRole(ACCESS_ROLE, msg.sender), "Must have access role to enable account");
-
+    function enableAccount(address member) public onlyRole(ACCESS_ROLE) {
         _authorizedAccounts[member] = true;
         emit EnabledAccount(member);
     }
@@ -76,9 +79,7 @@ abstract contract CBDCAccessControl is AccessControl {
     * @dev Desabilita uma carteira a receber o token
     * @param member: endereço da carteira a ser desabilitada
     */
-    function disableAccount(address member) public {
-        require(hasRole(ACCESS_ROLE, msg.sender), "Must have access role to disable account");
-
+    function disableAccount(address member) public onlyRole(ACCESS_ROLE) {
         _authorizedAccounts[member] = false;
         emit DisabledAccount(member);
     }

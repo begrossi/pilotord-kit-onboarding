@@ -21,8 +21,19 @@ contract RealDigital is ERC20, CBDCAccessControl, Pausable {
     // Define um evento que é acionado sempre que o saldo congelado de uma carteira é alterado.
     event FrozenBalance(address indexed wallet, uint256 amount);
 
+    // Modifier para verificar se um endereço possui fundos suficientes. Usado no _beforeTokenTransfer.
+    modifier checkFrozenBalance(address from, uint256 amount) {
+        if (from != address(0)) {
+            require(
+                balanceOf(from) - frozenBalanceOf(from) >= amount,
+                "RealDigital: insufficient balance"
+            );
+        }
+        _;
+    }
+
     // O construtor é chamado quando o contrato é publicado. Ele define o nome e o símbolo do token, e configura as funções de permissão.
-    constructor(string memory _name, string memory _symbol, address _authority, address _admin) ERC20(_name, _symbol) CBDCAccessControl(_authority, _admin) {
+    constructor(string memory _name, string memory _symbol, address _authority) ERC20(_name, _symbol) CBDCAccessControl(_authority) {
     }
 
     // A função 'pause' permite que um endereço com PAUSER_ROLE pause todas as transferências de tokens.
@@ -38,14 +49,12 @@ contract RealDigital is ERC20, CBDCAccessControl, Pausable {
 
     // Função que é chamada antes de qualquer transferência de tokens. Ela verifica se a transferência é válida
     // e permite que a transferência seja pausada.
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual override {
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual override
+        whenNotPaused
+        checkFrozenBalance(from, amount)
+        checkAccess(from, to) {
+
         super._beforeTokenTransfer(from, to, amount);
-        if (from != address(0) && to != address(0)) { // Not a minting or burning operation
-            require(!paused(), "Token transfer while paused");
-            require(hasRole(ACCESS_ROLE, from), "Caller is not a participant");
-            require(hasRole(ACCESS_ROLE, to), "Receiver is not a participant");
-            require(_frozenBalances[from] <= balanceOf(from) - amount, "Transfer exceeds unfrozen balance");
-        }
     }
 
     // A função 'burn' permite que um endereço com a permissão BURNER_ROLE queime uma quantidade específica de tokens de
@@ -57,6 +66,7 @@ contract RealDigital is ERC20, CBDCAccessControl, Pausable {
     // A função 'burnFrom' permite que um endereço queime uma quantidade específica de tokens de qualquer endereço,
     // desde que o queimador tenha uma permissão de 'allowance' suficiente do endereço de onde os tokens serão queimados.
     function burnFrom(address account, uint256 amount) public virtual whenNotPaused {
+        require(allowance(account, _msgSender()) >= amount, "ERC20: burn amount exceeds allowance");
         uint256 decreasedAllowance = allowance(account, _msgSender()) - amount;
         _approve(account, _msgSender(), decreasedAllowance);
         _burn(account, amount);
@@ -103,6 +113,8 @@ contract RealDigital is ERC20, CBDCAccessControl, Pausable {
 
     function transfer(address to, uint256 amount) public whenNotPaused override returns (bool) {
         require(verifyAccount(_msgSender()), "Sender account is not authorized");
+        require(verifyAccount(to), "Receiver account is not authorized");
+        
         _transfer(msg.sender, to, amount);
         return true;
     }
@@ -114,6 +126,7 @@ contract RealDigital is ERC20, CBDCAccessControl, Pausable {
     }
 
     function transferFrom(address from, address to, uint256 amount) public whenNotPaused override returns (bool) {
+        require(allowance(from, msg.sender) >= amount, "ERC20: transfer amount exceeds allowance");
         require(verifyAccount(from) && verifyAccount(to), "Either from or to account is not authorized");
 
         _transfer(from, to, amount);

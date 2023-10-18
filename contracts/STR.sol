@@ -16,17 +16,17 @@ contract STR {
 
     /**
      * @dev Construtor do contrato.
-     * @param _CBDC é a instância do contrato Real Digital.
+     * @param token é a instância do contrato Real Digital.
      */
-    constructor(RealDigital _CBDC) {
-        CBDC = _CBDC;
+    constructor(RealDigital token) {
+        CBDC = token;
     }
 
     /**
      * @dev Modificador para restringir o acesso apenas a participantes autorizados.
      */
     modifier onlyParticipant {
-        require(CBDC.hasRole(CBDC.ACCESS_ROLE(), msg.sender), "Must be participant");
+        require(CBDC.verifyAccount(msg.sender), "Must be participant");
         _;
     }
 

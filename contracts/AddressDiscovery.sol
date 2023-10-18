@@ -19,11 +19,10 @@ contract AddressDiscovery is AccessControl {
     /**
      * @dev Construtor do contrato
      * @param _authority endereço da autoridade do contrato, que pode atualizar os endereços dos contratos
-     * @param _admin endereço do administrador, que pode trocar a autoridade
      */
-    constructor(address _authority, address _admin) {
+    constructor(address _authority) {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setRoleAdmin(ACCESS_ROLE, keccak256(abi.encodePacked(_authority)));
-        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
         _setupRole(ACCESS_ROLE, _authority);
     }
 
@@ -32,10 +31,7 @@ contract AddressDiscovery is AccessControl {
      * @param smartContract hash keccak256 do nome do contrato
      * @param newAddress novo endereço do contrato
      */
-    function updateAddress(bytes32 smartContract, address newAddress) public {
-        // Verifica se o chamador tem o papel de acesso
-        require(hasRole(ACCESS_ROLE, msg.sender), "Must have access role to update address");
-
+    function updateAddress(bytes32 smartContract, address newAddress) public onlyRole(ACCESS_ROLE) {
         // Atualiza o endereço do contrato
         addressDiscovery[smartContract] = newAddress;
     }

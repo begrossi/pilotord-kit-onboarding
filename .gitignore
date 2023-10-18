@@ -3,3 +3,8 @@ package-lock.json
 cache/
 .vscode/
 *.bak
+
+# Hardhat files
+cache
+artifacts
+typechain-types

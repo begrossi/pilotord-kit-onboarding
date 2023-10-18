@@ -25,8 +25,8 @@ contract SwapOneStep {
         uint256 amount
     );
 
-    constructor(RealDigital _CBDC) {
-        CBDC = _CBDC;
+    constructor(RealDigital token) {
+        CBDC = token;
     }
 
     // Transfere o Real Tokenizado do cliente pagador para o recebedor. 
@@ -37,11 +37,9 @@ contract SwapOneStep {
         address receiver,
         uint256 amount
     ) public {
-
-        // Verifica se o participante pagador tem saldo suficiente
-        if (tokenSender.amountOf(msg.sender) < amount) {
-            revert("Saldo insuficiente");
-        }
+        require(tokenSender.verifyAccount(msg.sender), "Sender must be participant");
+        require(tokenReceiver.verifyAccount(receiver), "Receiver must be participant");
+        require(tokenSender.balanceOf(msg.sender) >= amount,"Saldo insuficiente");
 
         // Se for intrabancário, apenas transfere valor
         if (tokenSender.reserve() == tokenReceiver.reserve()) {

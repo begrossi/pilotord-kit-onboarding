@@ -20,18 +20,18 @@ contract RealDigitalDefaultAccount is AccessControl{
      * @dev Modificador de método: somente participantes podem executar o método.
      */
     modifier onlyParticipant {
-        require(CBDC.hasRole(CBDC.ACCESS_ROLE(), msg.sender), "Must be participant");
+        require(CBDC.verifyAccount(msg.sender), "Must be participant");
         _;
     }
     
     /**
      * @dev Construtor para instanciar o contrato.
-     * @param _CBDC Endereço do Real Digital.
+     * @param token Endereço do Real Digital.
      * @param _authority Autoridade do contrato.
      * @param _admin Administrador do contrato.
      */
-    constructor(RealDigital _CBDC, address _authority, address _admin) {
-        CBDC = _CBDC;
+    constructor(RealDigital token, address _authority, address _admin) {
+        CBDC = token;
         authority = _authority;
         admin = _admin;
     }

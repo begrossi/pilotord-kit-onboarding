@@ -61,8 +61,8 @@ contract SwapTwoSteps {
     event ExpiredProposal(uint256 proposalId);
 
     // Construtor do contrato. Recebe o endereço do contrato de Real Digital.
-    constructor(RealDigital _CBDC) {
-        CBDC = _CBDC;
+    constructor(RealDigital token) {
+        CBDC = token;
         proposalCounter = 0;
     }
 
@@ -73,9 +73,11 @@ contract SwapTwoSteps {
         address receiver,             // O endereço da wallet do cliente recebedor
         uint256 amount                // Quantidade de Reais a ser movimentada
     ) public {
-        proposalCounter += 1;
+        require(tokenSender.verifyAccount(msg.sender), "Sender must be participant");
+        require(tokenReceiver.verifyAccount(receiver), "Receiver must be participant");
+        require(tokenSender.balanceOf(msg.sender) >= amount,"Saldo insuficiente");
 
-        tokenSender.
+        proposalCounter += 1;
 
         swapProposals[proposalCounter] = SwapProposal({
             tokenSender: tokenSender,
@@ -103,10 +105,7 @@ contract SwapTwoSteps {
         require(proposal.receiver == msg.sender, "Only the receiver can execute the swap.");
         require(proposal.status == SwapStatus.PENDING, "Cannot execute swap, status is not PENDING.");
         require(block.timestamp - proposal.timestamp <= 1 minutes, "Swap proposal has expired.");
-
-        if (proposal.tokenSender.amountOf(proposal.sender) < proposal.amount) {
-            revert("Saldo insuficiente");
-        }
+        require(proposal.tokenSender.balanceOf(proposal.sender) >= proposal.amount, "Saldo insuficiente");
 
         // Se for intrabancário, apenas transfere valor
         if (proposal.tokenSender.reserve() == proposal.tokenReceiver.reserve()) {

@@ -22,7 +22,6 @@ contract RealTokenizado is RealDigital {
      * @param _name nome do token
      * @param _symbol símbolo do token
      * @param _authority endereço da autoridade do contrato
-     * @param _admin endereço do administrador
      * @param _participant identificação do participante
      * @param _cnpj8 CNPJ da instituição
      * @param _reserve endereço da reserva
@@ -31,11 +30,10 @@ contract RealTokenizado is RealDigital {
         string memory _name,
         string memory _symbol,
         address _authority,
-        address _admin,
         string memory _participant,
         uint256 _cnpj8,
         address _reserve
-    ) RealDigital(_name, _symbol, _authority, _admin) {
+    ) RealDigital(_name, _symbol, _authority) {
         _setupRole(RESERVE_ROLE, _reserve);
 
         participant = _participant;
@@ -44,7 +42,7 @@ contract RealTokenizado is RealDigital {
     }
 
     // Função para atualizar a carteira de reserva do token. A carteira de reserva é usada pelo DvP
-    function updateReserve(address newReserve) public whenNotPaused onlyRole(DEFAULT_ADMIN_ROLE) {
+    function updateReserve(address newReserve) public whenNotPaused onlyRole(ACCESS_ROLE) {
         revokeRole(RESERVE_ROLE, reserve);
         grantRole(RESERVE_ROLE, newReserve);
         reserve = newReserve;

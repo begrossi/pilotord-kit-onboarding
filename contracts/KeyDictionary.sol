@@ -46,16 +46,16 @@ contract KeyDictionary {
      * @dev Modificador de método: somente participantes podem executar o método.
      */
     modifier onlyParticipant {
-        require(CBDC.hasRole(CBDC.DEFAULT_ADMIN_ROLE(), msg.sender), "Must be participant");
+        require(CBDC.verifyAccount(msg.sender), "Must be participant");
         _;
     }
 
     /**
      * @dev Constrói uma instância do contrato e armazena o endereço do contrato do Real Digital.
-     * @param _CBDC endereço do contrato do Real Digital
+     * @param token endereço do contrato do Real Digital
      */
-    constructor(RealDigital _CBDC) {
-        CBDC = _CBDC;
+    constructor(RealDigital token) {
+        CBDC = token;
     }
 
     /**
